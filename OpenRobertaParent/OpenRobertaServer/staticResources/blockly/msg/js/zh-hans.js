@@ -134,7 +134,11 @@ Blockly.Msg.CONNECTION_TO_CONNECTION = "到连接";
 Blockly.Msg.CONNECTION_TO_ROBOT = "对机器人";
 Blockly.Msg.CONNECTION_WAIT_FOR_CONNECTION = "等待连接";
 Blockly.Msg.CONNECTION_WAIT_TOOLTIP = "等待通过蓝牙连接。";
+<<<<<<< HEAD
 Blockly.Msg.CONNECTOR = "hub";  // untranslated
+=======
+Blockly.Msg.CONNECTOR = "connection";  // untranslated
+>>>>>>> add Chinese language, zh-hans and zh-hant, update other languages
 Blockly.Msg.CONTROLS_FLOW_STATEMENTS_HELPURL = "https://github.com/google/blockly/wiki/Loops#loop-termination-blocks";  // untranslated
 Blockly.Msg.CONTROLS_FLOW_STATEMENTS_OPERATOR_BREAK = "中断循环";
 Blockly.Msg.CONTROLS_FLOW_STATEMENTS_OPERATOR_CONTINUE = "继续下一次循环";
@@ -583,7 +587,10 @@ Blockly.Msg.MENU_RIGHT_CODE_TOOLTIP = "Open/close the source code view.";  // un
 Blockly.Msg.MENU_RIGHT_HELP_TOOLTIP = "打开/关闭帮助视图";
 Blockly.Msg.MENU_RIGHT_INFO_TOOLTIP = "打开/关闭信息视图";
 Blockly.Msg.MENU_RIGHT_SIM_TOOLTIP = "Open/close the simulation view.";  // untranslated
+<<<<<<< HEAD
 Blockly.Msg.MENU_RIGHT_TUTORIAL_TOOLTIP = "open/close the tutorial's view";  // untranslated
+=======
+>>>>>>> add Chinese language, zh-hans and zh-hant, update other languages
 Blockly.Msg.MENU_ROBOT = "机器人";
 Blockly.Msg.MENU_ROBOT_STATE_INFO = "信息";
 Blockly.Msg.MENU_ROBOT_STATE_TOOLTIP = "机器人信息";
@@ -615,8 +622,11 @@ Blockly.Msg.MENU_STATE_INFO = "状态信息";
 Blockly.Msg.MENU_TOOLBOX = "NEPO-方块";
 Blockly.Msg.MENU_TOOLBOX_BEGINNER = "NEPO-方块 初学者";
 Blockly.Msg.MENU_TOOLBOX_EXPERT = "NEPO-方块 专家";
+<<<<<<< HEAD
 Blockly.Msg.MENU_TUTORIAL = "tutorials";  // untranslated
 Blockly.Msg.MENU_TUTORIAL_TOOLTIP = "tutorials";  // untranslated
+=======
+>>>>>>> add Chinese language, zh-hans and zh-hant, update other languages
 Blockly.Msg.MENU_USER = "登录";
 Blockly.Msg.MENU_USER_STATE_TOOLTIP = "用户信息";
 Blockly.Msg.MENU_USER_TOOLTIP = "用户";
@@ -694,8 +704,11 @@ Blockly.Msg.MOTORDIFF_ON_TOOLTIP = "以特定速度启动机器人。";
 Blockly.Msg.MOTORDIFF_STOP_TOOLTIP = "停止机器人。";
 Blockly.Msg.MOTORDIFF_TURN_FOR_TOOLTIP = "使机器人的度数变多。";
 Blockly.Msg.MOTORDIFF_TURN_TOOLTIP = "转动机器人。";
+<<<<<<< HEAD
 Blockly.Msg.MOTORS_ON_TOOLTIP_CALLIOPE = "Turns motor A and B on with a specific power.";  // untranslated
 Blockly.Msg.MOTORS_STOP_TOOLTIP = "Stops both motors, A and B.";  // untranslated
+=======
+>>>>>>> add Chinese language, zh-hans and zh-hant, update other languages
 Blockly.Msg.MOTOR_ARDU_TOOLTIP = "表示一个 Bot'n Roll 的底盘电机。";
 Blockly.Msg.MOTOR_BACKWARD = "向后";
 Blockly.Msg.MOTOR_BIG = "大";
@@ -853,8 +866,11 @@ Blockly.Msg.NXTBRICK_TOOLTIP = "表示具有连接的执行器和传感器的NXT
 Blockly.Msg.OFF = "关闭";
 Blockly.Msg.OLDER_THEN_14 = "我是16岁或以上的!";
 Blockly.Msg.ON = "打开";
+<<<<<<< HEAD
 Blockly.Msg.ORA_ACCESS_RIGHT_CHANGED = "The shared right is updated!";  // untranslated
 Blockly.Msg.ORA_ACCESS_RIGHT_DELETED = "The shared right is deleted!";  // untranslated
+=======
+>>>>>>> add Chinese language, zh-hans and zh-hant, update other languages
 Blockly.Msg.ORA_ACCOUNT_NOT_ACTIVATED_TO_SHARE = "你不被允许分享。请激活您的帐户! <br><a href=\"https://www.roberta-home.de/index.php?id=138&L=1\" target=\"_blank\">更多信息...</a>";
 Blockly.Msg.ORA_COMMAND_INVALID = "不正确的Javascript命令";
 Blockly.Msg.ORA_COMPILERWORKFLOW_ERROR_CONFIGURATION_NOT_FOUND = "在服务器上找不到机器人配置。";
@@ -1195,7 +1211,10 @@ Blockly.Msg.SENSOR_TIMER = "定时器";
 Blockly.Msg.SENSOR_TOP = "顶部";
 Blockly.Msg.SENSOR_TOUCH = "触摸传感器";
 Blockly.Msg.SENSOR_ULTRASONIC = "超声波传感器";
+<<<<<<< HEAD
 Blockly.Msg.SENSOR_ULTRASONIC_ARDUINO = "ultrasonic sensor HC-SR04";  // untranslated
+=======
+>>>>>>> add Chinese language, zh-hans and zh-hant, update other languages
 Blockly.Msg.SENSOR_UNIT_ACCEL = "m/s²";  // untranslated
 Blockly.Msg.SENSOR_UNIT_AMPERE = "A";  // untranslated
 Blockly.Msg.SENSOR_UNIT_CM = "厘米";
