@@ -62,7 +62,6 @@ import de.fhg.iais.roberta.syntax.lang.expr.Binary;
 import de.fhg.iais.roberta.syntax.lang.expr.Binary.Op;
 import de.fhg.iais.roberta.syntax.lang.expr.EmptyExpr;
 import de.fhg.iais.roberta.syntax.lang.expr.Expr;
-import de.fhg.iais.roberta.syntax.lang.expr.ListCreate;
 import de.fhg.iais.roberta.syntax.lang.expr.MathConst;
 import de.fhg.iais.roberta.syntax.lang.expr.RgbColor;
 import de.fhg.iais.roberta.syntax.lang.expr.StringConst;
@@ -199,8 +198,8 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
         this.sb.append(getLanguageVarTypeFromBlocklyType(var.getTypeVar()));
         if ( var.getTypeVar().isArray() ) {
             if ( !var.getValue().getKind().hasName("EMPTY_EXPR") ) {
-                final ListCreate<Void> list = (ListCreate<Void>) var.getValue();
-                this.sb.append(list.getValue().get().size() + ">");
+                //final ListCreate<Void> list = (ListCreate<Void>) var.getValue();
+                //this.sb.append(list.getValue().get().size() + ">");
             } else {
                 if ( this.numberOfArraysUsedInTemplate != this.currentArrayInTemplate ) {
                     this.sb.append("N" + this.currentArrayInTemplate + "> ");
@@ -787,32 +786,29 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
             this.sb.append("null");
             return null;
         }
+        this.sb.append("getListElementByIndex(");
         listGetIndex.getParam().get(0).visit(this);
-        this.sb.append("[");
-        switch ( (IndexLocation) listGetIndex.getLocation() ) {
-            case FROM_START:
-                listGetIndex.getParam().get(1).visit(this);
-                break;
-            case FROM_END:
-                arrayLen((Var<Void>) listGetIndex.getParam().get(0));
-                this.sb.append(" - 1 - ");
-                listGetIndex.getParam().get(1).visit(this);
-                break;
-            case FIRST:
-                this.sb.append("0");
-                break;
-            case LAST:
-                arrayLen((Var<Void>) listGetIndex.getParam().get(0));
-                this.sb.append(" - 1");
-                break;
-            case RANDOM:
-                this.sb.append("_uBit.random(");
-                arrayLen((Var<Void>) listGetIndex.getParam().get(0));
-                this.sb.append(")");
-                break;
-        }
-        this.sb.append("]");
+        this.sb.append(", ");
+        listGetIndex.getParam().get(1).visit(this);
+        this.sb.append(")");
         return null;
+    }
+
+    public void getListElementByIndex() {
+        this.sb.append("template <typename T>");
+        nlIndent();
+        this.sb.append("T getListElementByIndex(std::list<T> &list, int index) {");
+        incrIndentation();
+        nlIndent();
+        this.sb.append("auto iterator = list.begin();");
+        nlIndent();
+        this.sb.append("advance(iterator, index);");
+        nlIndent();
+        this.sb.append("return (*iterator);");
+        decrIndentation();
+        nlIndent();
+        this.sb.append("}");
+
     }
 
     @Override
@@ -820,35 +816,47 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
         if ( listSetIndex.getParam().get(0).toString().contains("ListCreate ") ) {
             return null;
         }
+        this.sb.append("setListElementByIndex(");
         listSetIndex.getParam().get(0).visit(this);
-        this.sb.append("[");
-        switch ( (IndexLocation) listSetIndex.getLocation() ) {
-            case FROM_START:
-                listSetIndex.getParam().get(2).visit(this);
-                break;
-            case FROM_END:
-                arrayLen((Var<Void>) listSetIndex.getParam().get(0));
-                this.sb.append(" - 1 - ");
-                listSetIndex.getParam().get(2).visit(this);
-                break;
-            case FIRST:
-                this.sb.append("0");
-                break;
-            case LAST:
-                arrayLen((Var<Void>) listSetIndex.getParam().get(0));
-                this.sb.append(" - 1");
-                break;
-            case RANDOM:
-                this.sb.append("_uBit.random(");
-                arrayLen((Var<Void>) listSetIndex.getParam().get(0));
-                this.sb.append(")");
-                break;
-        }
-        this.sb.append("]");
-        this.sb.append(" = ");
+        this.sb.append(", ");
+        listSetIndex.getParam().get(2).visit(this);
+        this.sb.append(", ");
         listSetIndex.getParam().get(1).visit(this);
-        this.sb.append(";");
+        this.sb.append(");");
         return null;
+    }
+
+    public void setListElementByIndex() {
+        /*
+         * The only known situation where the cast of P to T would be needed is for int to double
+         * in other cases T and P will be the same type. If only one template parameter is used
+         * then the match void setListElementByIndex(std::list<double>, int, int) would not be possible
+         */
+        this.sb.append("template <typename T, P>");
+        nlIndent();
+        this.sb.append("void setListElementByIndex(std::list<T> &list, int index, P value) {");
+        incrIndentation();
+        nlIndent();
+        this.sb.append("if (index < list.size()) {");
+        incrIndentation();
+        nlIndent();
+        this.sb.append("auto iterator = list.begin();");
+        nlIndent();
+        this.sb.append("advance(iterator, index);");
+        nlIndent();
+        this.sb.append("(*iterator) = (T) (value);");
+        decrIndentation();
+        nlIndent();
+        this.sb.append("} else {");
+        incrIndentation();
+        nlIndent();
+        this.sb.append("list.push_back((T) (value));");
+        decrIndentation();
+        nlIndent();
+        this.sb.append("}");
+        decrIndentation();
+        nlIndent();
+        this.sb.append("}");
     }
 
     @Override
@@ -1236,6 +1244,10 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
             return;
         }
         addIncludes();
+        getListElementByIndex();
+        nlIndent();
+        nlIndent();
+        setListElementByIndex();
         generateSignaturesOfUserDefinedMethods();
     }
 
@@ -1266,17 +1278,17 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
             case T:
                 return "";
             case ARRAY:
-                return "array<";
+                return "std::list<>";
             case ARRAY_NUMBER:
-                return "array<double, ";
+                return "std::list<double>";
             case ARRAY_STRING:
-                return "array<ManagedString,";
+                return "std::list<ManagedString>";
             case ARRAY_BOOLEAN:
-                return "array<bool,";
+                return "std::list<bool>";
             case ARRAY_IMAGE:
-                return "array<MicroBitImage,";
+                return "std::list<MicroBitImage>";
             case ARRAY_COLOUR:
-                return "array<MicroBitColor,";
+                return "std::list<MicroBitColor>";
             case BOOLEAN:
                 return "bool";
             case NUMBER:
@@ -1338,7 +1350,7 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
         if ( this.codePreprocess.isLedBarUsed() ) {
             this.sb.append("#include \"Grove_LED_Bar.h\"\n");
         }
-        this.sb.append("#include <array>\n");
+        this.sb.append("#include <list>\n");
         this.sb.append("#include <stdlib.h>\n");
         this.sb.append("MicroBit _uBit;\n\n");
         if ( this.codePreprocess.isFourDigitDisplayUsed() ) {
