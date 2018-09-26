@@ -62,6 +62,7 @@ import de.fhg.iais.roberta.syntax.lang.expr.Binary;
 import de.fhg.iais.roberta.syntax.lang.expr.Binary.Op;
 import de.fhg.iais.roberta.syntax.lang.expr.EmptyExpr;
 import de.fhg.iais.roberta.syntax.lang.expr.Expr;
+import de.fhg.iais.roberta.syntax.lang.expr.ListCreate;
 import de.fhg.iais.roberta.syntax.lang.expr.MathConst;
 import de.fhg.iais.roberta.syntax.lang.expr.RgbColor;
 import de.fhg.iais.roberta.syntax.lang.expr.StringConst;
@@ -196,7 +197,10 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
     public Void visitVarDeclaration(VarDeclaration<Void> var) {
         //TODO there must be a way to make this code simpler
         this.sb.append(getLanguageVarTypeFromBlocklyType(var.getTypeVar()));
-        if ( var.getTypeVar().isArray() ) {
+        if ( var.getTypeVar().isArray() && var.getValue().getKind().hasName("EMPTY_EXPR") ) {
+            this.sb.append(" &");
+        }
+        /*if ( var.getTypeVar().isArray() ) {
             if ( !var.getValue().getKind().hasName("EMPTY_EXPR") ) {
                 //final ListCreate<Void> list = (ListCreate<Void>) var.getValue();
                 //this.sb.append(list.getValue().get().size() + ">");
@@ -210,7 +214,7 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
                     this.currentArrayInTemplate++;
                 }
             }
-        }
+        }*/
         this.sb.append(whitespace() + var.getName());
         return null;
     }
@@ -746,19 +750,15 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
             this.sb.append("null");
             return null;
         }
-        String methodName = "findFirstOccurrenceOfElementInArray(";
+        String methodName = "_getFirstOccuranceOfElement(";
         if ( indexOfFunct.getLocation() != IndexLocation.FIRST ) {
-            methodName = "findLastOccurrenceOfElementInArray(";
+            methodName = "_getFirstOccuranceOfElement(";
         }
         this.sb.append(methodName);
-        if ( indexOfFunct.getParam().get(1).getVarType() == BlocklyType.NUMBER ) {
-            this.sb.append("(double) ");
-        } else if ( indexOfFunct.getParam().get(1).getVarType() == BlocklyType.STRING ) {
-            this.sb.append("(ManagedString) ");
-        }
-        indexOfFunct.getParam().get(1).visit(this);
-        this.sb.append(", ");
+
         indexOfFunct.getParam().get(0).visit(this);
+        this.sb.append(", ");
+        indexOfFunct.getParam().get(1).visit(this);
         this.sb.append(")");
         return null;
     }
@@ -924,16 +924,16 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
 
     @Override
     public Void visitMethodVoid(MethodVoid<Void> methodVoid) {
-        final List<Expr<Void>> parameters = methodVoid.getParameters().get();
-        appendTemplateIfArrayParameter(parameters);
+        //final List<Expr<Void>> parameters = methodVoid.getParameters().get();
+        //appendTemplateIfArrayParameter(parameters);
         super.visitMethodVoid(methodVoid);
         return null;
     }
 
     @Override
     public Void visitMethodReturn(MethodReturn<Void> methodReturn) {
-        final List<Expr<Void>> parameters = methodReturn.getParameters().get();
-        appendTemplateIfArrayParameter(parameters);
+        //final List<Expr<Void>> parameters = methodReturn.getParameters().get();
+        //appendTemplateIfArrayParameter(parameters);
         super.visitMethodReturn(methodReturn);
         return null;
     }
@@ -964,12 +964,26 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
     @Override
     public Void visitDisplayImageAction(DisplayImageAction<Void> displayImageAction) {
         String end = ");";
-        //this.sb.append("std::array<MicrobitImage, 3> arr;\n");
-        //this.sb.append("std::copy(list.begin(), list.end(), arr);\n");
+        if ( displayImageAction.getDisplayImageMode().name().equals("ANIMATION") ) {
+            try {
+                Expr<Void> values = displayImageAction.getValuesToDisplay();
+                int valuesSize = ((ListCreate<Void>) values).getValue().get().size();
+                this.sb.append("std::array<MicroBitImage, " + valuesSize + "> _animation = _convertToArray<MicroBitImage, " + valuesSize + ">(");
+                displayImageAction.getValuesToDisplay().visit(this);
+                this.sb.append(");");
+                nlIndent();
+            } catch ( Exception e ) {
+                this.sb.append("_uBit.display.");
+                this.sb.append("animateImages(");
+                displayImageAction.getValuesToDisplay().visit(this);
+                this.sb.append(", 200);");
+                return null;
+            }
+        }
         this.sb.append("_uBit.display.");
         if ( displayImageAction.getDisplayImageMode().name().equals("ANIMATION") ) {
-            this.sb.append("animateImages(");
-            end = ", 200);";
+            this.sb.append("animateImages(_animation, 200);");
+            return null;
         } else {
             this.sb.append("print(");
         }
@@ -1313,12 +1327,12 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
     @Override
     protected void generateSignaturesOfUserDefinedMethods() {
         for ( final Method<Void> phrase : this.userDefinedMethods ) {
-            appendTemplateIfArrayParameter(phrase.getParameters().get());
+            //appendTemplateIfArrayParameter(phrase.getParameters().get());
             nlIndent();
             this.sb.append(getLanguageVarTypeFromBlocklyType(phrase.getReturnType()));
-            if ( getLanguageVarTypeFromBlocklyType(phrase.getReturnType()).toString().contains("array") ) {
-                this.sb.append("M>");
-            }
+            //if ( getLanguageVarTypeFromBlocklyType(phrase.getReturnType()).toString().contains("array") ) {
+            //    this.sb.append("M>");
+            //}
             this.sb.append(" " + phrase.getMethodName() + "(");
             phrase.getParameters().visit(this);
             this.sb.append(");");

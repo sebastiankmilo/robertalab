@@ -17,6 +17,7 @@ public class CppVisitorTest {
             + "#include \"MicroBit.h\"" //
             + "#include \"NEPODefs.h\""
             + "#include <list>\n"
+            + "#include <array>\n"
             + "#include <stdlib.h>\n"
             + "MicroBit_uBit;";
 
@@ -98,15 +99,10 @@ public class CppVisitorTest {
                 + "255,255,255,255,255\\n"
                 + "0,255,255,255,0\\n"
                 + "0,0,255,0,0\\n\"));"
-                + "_uBit.display.animateImages({MicroBitImage(\"0,0,0,0,0\\n"
-                + "0,255,0,255,0\\n"
-                + "0,255,255,255,0\\n"
-                + "0,0,255,0,0\\n"
-                + "0,0,0,0,0\\n\"), MicroBitImage(\"0,0,0,0,0\\n"
-                + "255,255,0,255,255\\n"
-                + "0,0,0,0,0\\n"
-                + "0,255,255,255,0\\n"
-                + "0,0,0,0,0\\n\")}, 200);"
+                + "std::array<MicroBitImage,2>_animation=_convertToArray<MicroBitImage,2>"
+                + "({MicroBitImage(\"0,0,0,0,0\\n0,255,0,255,0\\n0,255,255,255,0\\n0,0,255,0,0\\n0,0,0,0,0\\n\"),"
+                + "MicroBitImage(\"0,0,0,0,0\\n255,255,0,255,255\\n0,0,0,0,0\\n0,255,255,255,0\\n0,0,0,0,0\\n\")});"
+                + "_uBit.display.animateImages(_animation, 200);"
                 + END;
 
         assertCodeIsOk(expectedResult, "/action/display_image_show_imag_and_animation.xml");
@@ -673,15 +669,13 @@ public class CppVisitorTest {
         String expectedResult =
             "" //
                 + IMPORTS
-                + "template<size_t N0>"
-                + "void doSomething(std::list<MicroBitImage> x);"
+                + "void doSomething(std::list<MicroBitImage> & x);"
                 + "std::list<MicroBitImage> item;\n"
                 + MAIN
                 + "item={MicroBitImage(\"0,255,0,255,0\\n255,255,255,255,255\\n255,255,255,255,255\\n0,255,255,255,0\\n0,0,255,0,0\\n\"),MicroBitImage(\"0,0,0,0,0\\n0,255,0,255,0\\n0,255,255,255,0\\n0,0,255,0,0\\n0,0,0,0,0\\n\"),MicroBitImage(\"0,255,0,255,0\\n255,255,255,255,255\\n255,255,255,255,255\\n0,255,255,255,0\\n0,0,255,0,0\\n\")};"
                 + "doSomething(item);"
                 + END
-                + "template<size_t N0>"
-                + "void doSomething(std::list<MicroBitImage> x) {"
+                + "void doSomething(std::list<MicroBitImage> & x) {"
                 + "_uBit.display.animateImages(x,200);"
                 + "}";
 
