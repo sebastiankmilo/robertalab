@@ -786,7 +786,7 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
             this.sb.append("null");
             return null;
         }
-        this.sb.append("getListElementByIndex(");
+        this.sb.append("_getListElementByIndex(");
         listGetIndex.getParam().get(0).visit(this);
         this.sb.append(", ");
         listGetIndex.getParam().get(1).visit(this);
@@ -794,29 +794,12 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
         return null;
     }
 
-    public void getListElementByIndex() {
-        this.sb.append("template <typename T>");
-        nlIndent();
-        this.sb.append("T getListElementByIndex(std::list<T> &list, int index) {");
-        incrIndentation();
-        nlIndent();
-        this.sb.append("auto iterator = list.begin();");
-        nlIndent();
-        this.sb.append("advance(iterator, index);");
-        nlIndent();
-        this.sb.append("return (*iterator);");
-        decrIndentation();
-        nlIndent();
-        this.sb.append("}");
-
-    }
-
     @Override
     public Void visitListSetIndex(ListSetIndex<Void> listSetIndex) {
         if ( listSetIndex.getParam().get(0).toString().contains("ListCreate ") ) {
             return null;
         }
-        this.sb.append("setListElementByIndex(");
+        this.sb.append("_setListElementByIndex(");
         listSetIndex.getParam().get(0).visit(this);
         this.sb.append(", ");
         listSetIndex.getParam().get(2).visit(this);
@@ -824,39 +807,6 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
         listSetIndex.getParam().get(1).visit(this);
         this.sb.append(");");
         return null;
-    }
-
-    public void setListElementByIndex() {
-        /*
-         * The only known situation where the cast of P to T would be needed is for int to double
-         * in other cases T and P will be the same type. If only one template parameter is used
-         * then the match void setListElementByIndex(std::list<double>, int, int) would not be possible
-         */
-        this.sb.append("template <typename T, P>");
-        nlIndent();
-        this.sb.append("void setListElementByIndex(std::list<T> &list, int index, P value) {");
-        incrIndentation();
-        nlIndent();
-        this.sb.append("if (index < list.size()) {");
-        incrIndentation();
-        nlIndent();
-        this.sb.append("auto iterator = list.begin();");
-        nlIndent();
-        this.sb.append("advance(iterator, index);");
-        nlIndent();
-        this.sb.append("(*iterator) = (T) (value);");
-        decrIndentation();
-        nlIndent();
-        this.sb.append("} else {");
-        incrIndentation();
-        nlIndent();
-        this.sb.append("list.push_back((T) (value));");
-        decrIndentation();
-        nlIndent();
-        this.sb.append("}");
-        decrIndentation();
-        nlIndent();
-        this.sb.append("}");
     }
 
     @Override
@@ -1014,6 +964,8 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
     @Override
     public Void visitDisplayImageAction(DisplayImageAction<Void> displayImageAction) {
         String end = ");";
+        //this.sb.append("std::array<MicrobitImage, 3> arr;\n");
+        //this.sb.append("std::copy(list.begin(), list.end(), arr);\n");
         this.sb.append("_uBit.display.");
         if ( displayImageAction.getDisplayImageMode().name().equals("ANIMATION") ) {
             this.sb.append("animateImages(");
@@ -1244,10 +1196,6 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
             return;
         }
         addIncludes();
-        getListElementByIndex();
-        nlIndent();
-        nlIndent();
-        setListElementByIndex();
         generateSignaturesOfUserDefinedMethods();
     }
 
@@ -1342,7 +1290,7 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
 
     private void addIncludes() {
         this.sb.append("#define _GNU_SOURCE\n\n");
-        this.sb.append("#include \"MicroBit.h\" \n");
+        this.sb.append("#include \"MicroBit.h\"\n");
         this.sb.append("#include \"NEPODefs.h\"\n");
         if ( this.codePreprocess.isFourDigitDisplayUsed() ) {
             this.sb.append("#include \"FourDigitDisplay.h\"\n");
@@ -1351,8 +1299,9 @@ public class CppVisitor extends RobotCppVisitor implements MbedAstVisitor<Void>,
             this.sb.append("#include \"Grove_LED_Bar.h\"\n");
         }
         this.sb.append("#include <list>\n");
+        this.sb.append("#include <array>\n");
         this.sb.append("#include <stdlib.h>\n");
-        this.sb.append("MicroBit _uBit;\n\n");
+        this.sb.append("MicroBit _uBit;");
         if ( this.codePreprocess.isFourDigitDisplayUsed() ) {
             this.sb.append("FourDigitDisplay fdd(MICROBIT_PIN_P2, MICROBIT_PIN_P8);\n"); // Only works on the right UART Grove connector
         }

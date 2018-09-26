@@ -33,3 +33,89 @@
 #ifndef M_INFINITY
 #define M_INFINITY 0x7f800000
 #endif
+
+#include <list>
+
+template <typename T>
+T _getListElementByIndex(std::list<T> &list, unsigned index) {
+    auto iterator = list.begin();
+    advance(iterator, index);
+    return (*iterator);
+}
+
+template <typename T>
+T _getAndRemoveListElementByIndex(std::list<T> &list, unsigned index) {
+    auto iterator = list.begin();
+    advance(iterator, index);
+    T value = (*iterator);
+    list.erase(iterator);
+    return value;
+}
+
+template <typename T>
+void _removeListElementByIndex(std::list<T> &list, unsigned index) {
+    _getAndRemoveListElementByIndex(list, index);
+}
+
+/*
+* The only known situation where the cast of P to T would be needed is for int to double
+* in other cases T and P will be the same type. If only one template parameter is used
+* then the match void setListElementByIndex(std::list<double>, int, int) would not be possible
+*/
+
+template <typename T, typename P>
+void _setListElementByIndex(std::list<T> &list, unsigned index, P value) {
+    if (index < list.size()) {
+        auto iterator = list.begin();
+        advance(iterator, index);
+        (*iterator) = (T) (value);
+    } else {
+        list.push_back((T) (value));
+    }
+}
+
+template <typename T, typename P>
+void _insertListElementBeforeIndex(std::list<T> &list, unsigned index, P value) {
+    auto iterator = list.begin();
+    advance(iterator, index);
+    list.insert(iterator, (T) (value));
+}
+
+template <typename T, typename P>
+int _getFirstOccuranceOfElement(std::list<T> &list, P value) {
+    int i = 0;
+    auto iterator = list.begin();
+    for(i = 0, iterator = list.begin(); iterator != list.end(); ++iterator, ++i) {
+      if ((P) (*iterator) == value) {
+        return i;
+      }
+    }
+    if ((P) (*iterator) != value) {
+      return -1;
+    }
+}
+
+template <typename T, typename P>
+int _getLastOccuranceOfElement(std::list<T> &list, P value) {
+    int i = 0;
+    auto iterator = list.rbegin();
+    for(i = 0, iterator = list.rbegin(); iterator != list.rend(); ++iterator, ++i) {
+      if ((P) (*iterator) == value) {
+        return i;
+      }
+    }
+    if ((P) (*iterator) != value) {
+      return -1;
+    }
+}
+
+template <typename T, long unsigned S>
+std::array<T, S> _convertToArray(std::list<T> &list) {
+  auto iterator = list.begin();
+  std::array<T, S> result;
+  int i = 0;
+  for(auto iterator = list.begin(), i = 0; iterator != list.end(); ++iterator, ++i) {
+    result[i] = *iterator;
+  }
+  return result;
+}
