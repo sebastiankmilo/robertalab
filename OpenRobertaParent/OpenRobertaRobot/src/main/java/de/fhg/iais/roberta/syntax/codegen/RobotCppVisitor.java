@@ -302,15 +302,15 @@ public abstract class RobotCppVisitor extends CommonLanguageVisitor {
             case T:
                 return "";
             case ARRAY:
-                return "double";
+                return "std::list<double>";
             case ARRAY_NUMBER:
-                return "double";
+                return "std::list<double>";
             case ARRAY_STRING:
-                return "String";
+                return "std::list<String>";
             case ARRAY_BOOLEAN:
-                return "bool";
+                return "std::list<bool>";
             case ARRAY_COLOUR:
-                return "String";
+                return "std::list<String>";
             case BOOLEAN:
                 return "bool";
             case NUMBER:
@@ -331,7 +331,7 @@ public abstract class RobotCppVisitor extends CommonLanguageVisitor {
     }
 
     @Override
-    protected void generateCodeFromTernary(IfStmt<Void> ifStmt) { 
+    protected void generateCodeFromTernary(IfStmt<Void> ifStmt) {
         this.sb.append("(" + whitespace() + "(" + whitespace());
         ifStmt.getExpr().get(0).visit(this);
         this.sb.append(whitespace() + ")" + whitespace() + "?" + whitespace() + "(" + whitespace());

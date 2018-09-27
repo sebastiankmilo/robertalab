@@ -12,7 +12,6 @@ import de.fhg.iais.roberta.syntax.Phrase;
 import de.fhg.iais.roberta.syntax.codegen.RobotCppVisitor;
 import de.fhg.iais.roberta.syntax.lang.expr.Binary;
 import de.fhg.iais.roberta.syntax.lang.expr.Binary.Op;
-import de.fhg.iais.roberta.syntax.lang.expr.ListCreate;
 import de.fhg.iais.roberta.syntax.lang.expr.MathConst;
 import de.fhg.iais.roberta.syntax.lang.expr.Var;
 import de.fhg.iais.roberta.syntax.lang.expr.VarDeclaration;
@@ -30,7 +29,6 @@ import de.fhg.iais.roberta.syntax.lang.functions.MathRandomFloatFunct;
 import de.fhg.iais.roberta.syntax.lang.functions.MathRandomIntFunct;
 import de.fhg.iais.roberta.syntax.lang.functions.TextJoinFunct;
 import de.fhg.iais.roberta.syntax.lang.functions.TextPrintFunct;
-import de.fhg.iais.roberta.syntax.lang.stmt.AssignStmt;
 import de.fhg.iais.roberta.syntax.lang.stmt.RepeatStmt;
 import de.fhg.iais.roberta.syntax.lang.stmt.WaitStmt;
 import de.fhg.iais.roberta.syntax.lang.stmt.WaitTimeStmt;
@@ -51,47 +49,11 @@ public abstract class ArduinoVisitor extends RobotCppVisitor {
 
     protected void generateUsedVars() {
         for ( VarDeclaration<Void> var : this.usedVars ) {
-            if ( !var.getValue().getKind().hasName("EMPTY_EXPR") ) {
-                if ( var.getTypeVar().isArray() && !var.getValue().getKind().hasName("EMPTY_EXPR") ) {
-                    int size = 0;
-                    if ( var.getValue().getKind().hasName("SENSOR_EXPR") ) {
-                        size = 3;
-                    } else {
-                        ListCreate<Void> list = (ListCreate<Void>) var.getValue();
-                        size = list.getValue().get().size();
-                    }
-                    this.sb.append("__" + var.getName() + "Len = ").append(size).append(";");
-                    this.nlIndent();
-                    this.sb.append(getLanguageVarTypeFromBlocklyType(var.getTypeVar())).append(" ");
-                    this.sb.append("__" + var.getName()).append("[]").append(" = ");
-                    var.getValue().visit(this);
-                    this.sb.append(";");
-                    this.nlIndent();
-                }
-                this.sb.append(var.getName());
-                if ( var.getTypeVar().isArray() ) {
-                    this.sb.append(" = (");
-                    this.sb.append(getLanguageVarTypeFromBlocklyType(var.getTypeVar())).append("*)malloc(");
-                    this.sb.append("sizeof(");
-                    this.sb.append(getLanguageVarTypeFromBlocklyType(var.getTypeVar())).append(")*");
-                    this.sb.append("__" + var.getName() + "Len").append(")").append(";");
-                    this.nlIndent();
-                    this.sb.append("rob.createArray(").append(var.getName()).append(", ");
-                    this.sb.append("__" + var.getName() + "Len").append(", ").append("__" + var.getName());
-                    this.sb.append(")");
-                } else {
-                    this.sb.append(" = ");
-                    var.getValue().visit(this);
-                }
-                this.sb.append(";");
-                this.nlIndent();
-            } else {
-                if ( var.getTypeVar().isArray() ) {
-                    this.sb.append("__" + var.getName() + "Len = ").append(0);
-                    this.sb.append(";");
-                    this.nlIndent();
-                }
-            }
+            this.sb.append(var.getName());
+            this.sb.append(" = ");
+            var.getValue().visit(this);
+            this.sb.append(";");
+            this.nlIndent();
         }
     }
 
@@ -102,65 +64,9 @@ public abstract class ArduinoVisitor extends RobotCppVisitor {
             this.sb.append(var.getName());
             this.sb.append(var.getTypeVar().isArray() ? "[]" : "");
         } else {
-            if ( var.getTypeVar().isArray() ) {
-                this.sb.append("int " + "__" + var.getName() + "Len;");
-                this.nlIndent();
-            }
             this.sb.append(getLanguageVarTypeFromBlocklyType(var.getTypeVar())).append(" ");
-            this.sb.append(var.getTypeVar().isArray() ? "*" : "");
             this.sb.append(var.getName());
         }
-        return null;
-    }
-
-    @Override
-    public Void visitAssignStmt(AssignStmt<Void> assignStmt) {
-        if ( assignStmt.getExpr().getKind().hasName("LIST_CREATE") && !assignStmt.getExpr().getKind().hasName("EMPTY_EXPR") ) {
-            int size = 0;
-            this.sb.append(getLanguageVarTypeFromBlocklyType(assignStmt.getExpr().getVarType())).append(" ");
-            this.sb.append("__");
-            assignStmt.getName().visit(this);
-            this.sb.append(assignStmt.getProperty().getBlocklyId().replaceAll("[^A-Za-z]+", "")).append("[]").append(" = ");
-            assignStmt.getExpr().visit(this);
-            this.sb.append(";");
-            this.nlIndent();
-            if ( assignStmt.getExpr().getKind().hasName("SENSOR_EXPR") ) {
-                size = 3;
-            } else {
-                ListCreate<Void> list = (ListCreate<Void>) assignStmt.getExpr();
-                size = assignStmt.getExpr().getKind().hasName("SENSOR_EXPR") ? 3 : list.getValue().get().size();
-            }
-            this.sb.append("__");
-            assignStmt.getName().visit(this);
-            this.sb.append("Len = ").append(size).append(";");
-            this.nlIndent();
-        }
-        assignStmt.getName().visit(this);
-
-        this.sb.append(" = ");
-        if ( !assignStmt.getExpr().getKind().hasName("EMPTY_EXPR") ) {
-            if ( assignStmt.getExpr().getKind().hasName("LIST_CREATE") ) {
-                this.sb.append("(").append(getLanguageVarTypeFromBlocklyType(assignStmt.getExpr().getVarType())).append("*)realloc(");
-                assignStmt.getName().visit(this);
-                this.sb.append(", ").append("sizeof(");
-                this.sb.append(getLanguageVarTypeFromBlocklyType(assignStmt.getExpr().getVarType())).append(")*");
-                this.sb.append("__");
-                assignStmt.getName().visit(this);
-                this.sb.append("Len);");
-                this.nlIndent();
-                this.sb.append("rob.createArray(");
-                assignStmt.getName().visit(this);
-                this.sb.append(", ");
-                this.sb.append("__");
-                assignStmt.getName().visit(this);
-                this.sb.append("Len, ").append("__");
-                assignStmt.getName().visit(this);
-                this.sb.append(assignStmt.getProperty().getBlocklyId().replaceAll("[^A-Za-z]+", "")).append(")");
-            } else {
-                assignStmt.getExpr().visit(this);
-            }
-        }
-        this.sb.append(";");
         return null;
     }
 
@@ -392,31 +298,11 @@ public abstract class ArduinoVisitor extends RobotCppVisitor {
             this.sb.append("null");
             return null;
         }
+        this.sb.append("_getListElementByIndex(");
         listGetIndex.getParam().get(0).visit(this);
-        this.sb.append("[");
-        switch ( (IndexLocation) listGetIndex.getLocation() ) {
-            case FROM_START:
-                listGetIndex.getParam().get(1).visit(this);
-                break;
-            case FROM_END:
-                arrayLen((Var<Void>) listGetIndex.getParam().get(0));
-                this.sb.append(" - 1 - ");
-                listGetIndex.getParam().get(1).visit(this);
-                break;
-            case FIRST:
-                this.sb.append("0");
-                break;
-            case LAST:
-                arrayLen((Var<Void>) listGetIndex.getParam().get(0));
-                this.sb.append(" - 1");
-                break;
-            case RANDOM:
-                this.sb.append("rob.randomIntegerInRange(0, ");
-                arrayLen((Var<Void>) listGetIndex.getParam().get(0));
-                this.sb.append(")");
-                break;
-        }
-        this.sb.append("]");
+        this.sb.append(", ");
+        listGetIndex.getParam().get(1).visit(this);
+        this.sb.append(")");
         return null;
     }
 
@@ -425,33 +311,13 @@ public abstract class ArduinoVisitor extends RobotCppVisitor {
         if ( listSetIndex.getParam().get(0).toString().contains("ListCreate ") ) {
             return null;
         }
+        this.sb.append("_setListElementByIndex(");
         listSetIndex.getParam().get(0).visit(this);
-        this.sb.append("[");
-        switch ( (IndexLocation) listSetIndex.getLocation() ) {
-            case FROM_START:
-                listSetIndex.getParam().get(2).visit(this);
-                break;
-            case FROM_END:
-                arrayLen((Var<Void>) listSetIndex.getParam().get(0));
-                this.sb.append(" - 1 - ");
-                listSetIndex.getParam().get(2).visit(this);
-                break;
-            case FIRST:
-                this.sb.append("0");
-                break;
-            case LAST:
-                arrayLen((Var<Void>) listSetIndex.getParam().get(0));
-                this.sb.append(" - 1");
-                break;
-            case RANDOM:
-                this.sb.append("rob.randomIntegerInRange(0, ");
-                arrayLen((Var<Void>) listSetIndex.getParam().get(0));
-                this.sb.append(")");
-                break;
-        }
-        this.sb.append("]");
-        this.sb.append(" = ");
+        this.sb.append(", ");
+        listSetIndex.getParam().get(2).visit(this);
+        this.sb.append(", ");
         listSetIndex.getParam().get(1).visit(this);
+        this.sb.append(");");
         return null;
     }
 

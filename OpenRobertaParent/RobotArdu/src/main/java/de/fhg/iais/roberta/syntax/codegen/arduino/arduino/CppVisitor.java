@@ -170,11 +170,12 @@ public class CppVisitor extends ArduinoVisitor implements ArduinoAstVisitor<Void
 
     @Override
     public Void visitLightStatusAction(LightStatusAction<Void> lightStatusAction) {
-        String[] colors = {
-            "red",
-            "green",
-            "blue"
-        };
+        String[] colors =
+            {
+                "red",
+                "green",
+                "blue"
+            };
         for ( int i = 0; i < 3; i++ ) {
             this.sb.append("analogWrite(_led_" + colors[i] + "_" + lightStatusAction.getPort().getOraName() + ", 0);");
             nlIndent();
@@ -227,12 +228,8 @@ public class CppVisitor extends ArduinoVisitor implements ArduinoAstVisitor<Void
 
     @Override
     public Void visitRelayAction(RelayAction<Void> relayAction) {
-        this.sb
-            .append("digitalWrite(_relay_")
-            .append(relayAction.getPort().getOraName())
-            .append(", ")
-            .append(relayAction.getMode().getValues()[0])
-            .append(");");
+        this.sb.append("digitalWrite(_relay_").append(relayAction.getPort().getOraName()).append(", ").append(relayAction.getMode().getValues()[0]).append(
+            ");");
         return null;
     }
 
@@ -662,6 +659,12 @@ public class CppVisitor extends ArduinoVisitor implements ArduinoAstVisitor<Void
             }
         }
         this.sb.append("#include <RobertaFunctions.h>   // Open Roberta library");
+        this.nlIndent();
+        this.sb.append("#include <ArduinoSTL.h>");
+        nlIndent();
+        this.sb.append("#include <list>");
+        nlIndent();
+        this.sb.append("#include <NEPODefs.h>");
         this.nlIndent();
         this.nlIndent();
         this.sb.append("RobertaFunctions rob;");
