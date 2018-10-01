@@ -72,6 +72,7 @@ import de.fhg.iais.roberta.visitors.arduino.ArduinoAstVisitor;
  */
 public class CppVisitor extends ArduinoVisitor implements ArduinoAstVisitor<Void> {
     private final boolean isTimerSensorUsed;
+    private final boolean isListsUsed;
 
     /**
      * Initialize the C++ code generator visitor.
@@ -88,6 +89,7 @@ public class CppVisitor extends ArduinoVisitor implements ArduinoAstVisitor<Void
         //TODO: fix how the timer is detected for all robots
         this.isTimerSensorUsed = codePreprocessVisitor.isTimerSensorUsed();
         this.loopsLabels = codePreprocessVisitor.getloopsLabelContainer();
+        this.isListsUsed = codePreprocessVisitor.isListsUsed();
     }
 
     /**
@@ -660,10 +662,12 @@ public class CppVisitor extends ArduinoVisitor implements ArduinoAstVisitor<Void
         }
         this.sb.append("#include <RobertaFunctions.h>   // Open Roberta library");
         this.nlIndent();
-        this.sb.append("#include <ArduinoSTL.h>");
-        nlIndent();
-        this.sb.append("#include <list>");
-        nlIndent();
+        if ( this.isListsUsed ) {
+            this.sb.append("#include <ArduinoSTL.h>");
+            nlIndent();
+            this.sb.append("#include <list>");
+            nlIndent();
+        }
         this.sb.append("#include <NEPODefs.h>");
         this.nlIndent();
         this.nlIndent();
