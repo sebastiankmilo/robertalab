@@ -7,6 +7,7 @@ import de.fhg.iais.roberta.components.UsedActor;
 import de.fhg.iais.roberta.components.UsedConfigurationBlock;
 import de.fhg.iais.roberta.components.UsedSensor;
 import de.fhg.iais.roberta.mode.general.IndexLocation;
+import de.fhg.iais.roberta.mode.general.ListElementOperations;
 import de.fhg.iais.roberta.mode.sensor.TimerSensorMode;
 import de.fhg.iais.roberta.syntax.Phrase;
 import de.fhg.iais.roberta.syntax.codegen.RobotCppVisitor;
@@ -298,11 +299,54 @@ public abstract class ArduinoVisitor extends RobotCppVisitor {
             this.sb.append("null");
             return null;
         }
-        this.sb.append("_getListElementByIndex(");
-        listGetIndex.getParam().get(0).visit(this);
-        this.sb.append(", ");
-        listGetIndex.getParam().get(1).visit(this);
-        this.sb.append(")");
+        String operation = "";
+        System.out.println(listGetIndex.getElementOperation());
+        switch ( (ListElementOperations) listGetIndex.getElementOperation() ) {
+            case GET:
+                operation = "_getListElementByIndex(";
+                break;
+            case GET_REMOVE:
+                operation = "_getAndRemoveListElementByIndex(";
+                break;
+            case INSERT:
+                break;
+            case REMOVE:
+                operation = "_removeListElementByIndex(";
+                break;
+            case SET:
+                break;
+            default:
+                break;
+        }
+        this.sb.append(operation);
+        switch ( (IndexLocation) listGetIndex.getLocation() ) {
+            case FIRST:
+                listGetIndex.getParam().get(0).visit(this);
+                this.sb.append(", 0)");
+                break;
+            case FROM_END:
+                listGetIndex.getParam().get(0).visit(this);
+                this.sb.append(", ");
+                listGetIndex.getParam().get(0).visit(this);
+                this.sb.append(".size() - 1 - ");
+                listGetIndex.getParam().get(1).visit(this);
+                this.sb.append(")");
+                break;
+            case FROM_START:
+                listGetIndex.getParam().get(0).visit(this);
+                this.sb.append(", ");
+                listGetIndex.getParam().get(1).visit(this);
+                this.sb.append(")");
+                break;
+            case LAST:
+                listGetIndex.getParam().get(0).visit(this);
+                this.sb.append(", ");
+                listGetIndex.getParam().get(0).visit(this);
+                this.sb.append(".size() - 1)");
+                break;
+            default:
+                break;
+        }
         return null;
     }
 
@@ -311,13 +355,61 @@ public abstract class ArduinoVisitor extends RobotCppVisitor {
         if ( listSetIndex.getParam().get(0).toString().contains("ListCreate ") ) {
             return null;
         }
-        this.sb.append("_setListElementByIndex(");
-        listSetIndex.getParam().get(0).visit(this);
-        this.sb.append(", ");
-        listSetIndex.getParam().get(2).visit(this);
-        this.sb.append(", ");
-        listSetIndex.getParam().get(1).visit(this);
-        this.sb.append(");");
+        String operation = "";
+        System.out.println(listSetIndex.getElementOperation());
+        switch ( (ListElementOperations) listSetIndex.getElementOperation() ) {
+            case GET:
+                break;
+            case GET_REMOVE:
+                break;
+            case INSERT:
+                operation = "_insertListElementBeforeIndex(";
+                break;
+            case REMOVE:
+                break;
+            case SET:
+                operation = "_setListElementByIndex(";
+                break;
+            default:
+                break;
+        }
+        this.sb.append(operation);
+        switch ( (IndexLocation) listSetIndex.getLocation() ) {
+            case FIRST:
+                listSetIndex.getParam().get(0).visit(this);
+                this.sb.append(", 0, ");
+                listSetIndex.getParam().get(1).visit(this);
+                this.sb.append(")");
+                break;
+            case FROM_END:
+                listSetIndex.getParam().get(0).visit(this);
+                this.sb.append(", ");
+                listSetIndex.getParam().get(0).visit(this);
+                this.sb.append(".size() - 1 - ");
+                listSetIndex.getParam().get(2).visit(this);
+                this.sb.append(", ");
+                listSetIndex.getParam().get(1).visit(this);
+                this.sb.append(")");
+                break;
+            case FROM_START:
+                listSetIndex.getParam().get(0).visit(this);
+                this.sb.append(", ");
+                listSetIndex.getParam().get(2).visit(this);
+                this.sb.append(", ");
+                listSetIndex.getParam().get(1).visit(this);
+                this.sb.append(")");
+                break;
+            case LAST:
+                listSetIndex.getParam().get(0).visit(this);
+                this.sb.append(", ");
+                listSetIndex.getParam().get(0).visit(this);
+                this.sb.append(".size() - 1, ");
+                listSetIndex.getParam().get(1).visit(this);
+                this.sb.append(")");
+                break;
+            default:
+                break;
+        }
         return null;
     }
 
