@@ -266,10 +266,8 @@ public abstract class ArduinoVisitor extends RobotCppVisitor {
             this.sb.append("null");
             return null;
         }
-        String methodName = indexOfFunct.getLocation() == IndexLocation.LAST ? "rob.arrFindLast(" : "rob.arrFindFirst(";
+        String methodName = indexOfFunct.getLocation() == IndexLocation.LAST ? "_getLastOccuranceOfElement(" : "_getFirstOccuranceOfElement(";
         this.sb.append(methodName);
-        arrayLen((Var<Void>) indexOfFunct.getParam().get(0));
-        this.sb.append(", ");
         indexOfFunct.getParam().get(0).visit(this);
         this.sb.append(", ");
         indexOfFunct.getParam().get(1).visit(this);
@@ -285,10 +283,13 @@ public abstract class ArduinoVisitor extends RobotCppVisitor {
         }
         if ( lengthOfIsEmptyFunct.getFunctName() == FunctionNames.LIST_IS_EMPTY ) {
             this.sb.append("(");
-            arrayLen((Var<Void>) lengthOfIsEmptyFunct.getParam().get(0));
+            lengthOfIsEmptyFunct.getParam().get(0).visit(this);
+            this.sb.append(".size()");
             this.sb.append(" == 0)");
         } else {
-            arrayLen((Var<Void>) lengthOfIsEmptyFunct.getParam().get(0));
+            this.sb.append("((int) ");
+            lengthOfIsEmptyFunct.getParam().get(0).visit(this);
+            this.sb.append(".size())");
         }
         return null;
     }
